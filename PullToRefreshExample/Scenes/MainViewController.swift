@@ -9,21 +9,48 @@ import UIKit
 
 final class MainViewController: UIViewController {
     
-    @IBOutlet weak var postTableView: UITableView! {
+    @IBOutlet private weak var postTableView: UITableView! {
         didSet {
             postTableView.dataSource = self
             postTableView.delegate = self
         }
     }
     
-    private var posts: [Post] = [
-        .init(userId: 0, id: 0, title: "0", body: "0"),
-        .init(userId: 1, id: 1, title: "1", body: "1"),
-        .init(userId: 2, id: 2, title: "2", body: "2")
-    ]
+    private var posts: [Post] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.updatePosts()
+    }
+    
+    private func updatePosts() {
+        guard let url = URL.init(string: "https://jsonplaceholder.typicode.com/posts")
+        else { return }
+        
+        var request: URLRequest = .init(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 10.0
+        
+        URLSession.shared.dataTask(with: request) { data, urlResponse, error in
+            if let error = error {
+                debugPrint(error.localizedDescription)
+                return
+            }
+            
+            guard let data = data else {
+                return
+            }
+            
+            guard let posts = try? JSONDecoder.init().decode(Array<Post>.self, from: data)
+            else { return }
+            
+            self.posts = posts
+            
+            DispatchQueue.main.async {
+                self.postTableView.reloadData()
+            }
+        }
+        .resume()
     }
 }
 
