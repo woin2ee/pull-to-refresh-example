@@ -13,12 +13,6 @@ final class MainViewController: UIViewController {
         didSet {
             postTableView.dataSource = self
             postTableView.delegate = self
-            postTableView.refreshControl = .init()
-            postTableView.refreshControl?.addTarget(
-                self,
-                action: #selector(self.refreshPostTableView),
-                for: .valueChanged
-            )
         }
     }
     
@@ -28,6 +22,7 @@ final class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.updatePosts()
+        self.configRefreshControl()
     }
     
     private func updatePosts(completion: (() -> Void)? = nil) {
@@ -65,6 +60,19 @@ final class MainViewController: UIViewController {
             completion?()
         }
         .resume()
+    }
+    
+    private func configRefreshControl() {
+        let refreshControl = UIRefreshControl.init()
+        refreshControl.backgroundColor = .lightGray
+        refreshControl.attributedTitle = .init(string: "Test")
+        
+        self.postTableView.refreshControl = refreshControl
+        self.postTableView.refreshControl?.addTarget(
+            self,
+            action: #selector(self.refreshPostTableView),
+            for: .valueChanged
+        )
     }
     
     @objc private func refreshPostTableView() {
